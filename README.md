@@ -1,6 +1,4 @@
-# Acoustic Summer Countdown Website to Our Return to Vietnam
-
-## Đếm ngày về Việt Nam tại [TuKiNhatUVA.github.io](https://tukinhatuva.github.io/) hjhj
+# Đếm ngày về Việt Nam tại [TuKiNhatUVA.github.io](https://tukinhatuva.github.io/) hjhj
 
 ## Website cá nhân của tml tự kỉ xài AI để làm cái này (ngành CS hết cứu) [https://huynguyen04.github.io/](https://huynguyen04.github.io/) :DD
 

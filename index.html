@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fancy Countdown Timer with Video</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+        }
+        
+        .countdown-container {
+            position: relative;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            max-width: 700px;
+            width: 90%;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .placeholder-image {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        h1 {
+            font-weight: 700;
+            margin-bottom: 2.5rem;
+            font-size: 2.5rem;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            letter-spacing: 1px;
+        }
+        
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 600px) {
+            .countdown {
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .placeholder-image {
+                width: 60px;
+                height: 60px;
+                top: 15px;
+                right: 15px;
+            }
+        }
+        
+        .time-segment {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+            position: relative;
+        }
+        
+        .time {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.2);
+            color: white;
+            border-radius: 12px;
+            width: 100%;
+            padding: 1rem 0;
+            margin-bottom: 0.8rem;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        
+        .time::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .time-segment:hover .time {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        
+        .target-date {
+            margin-top: 2rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        
+        .date-input {
+            margin-top: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .date-input input {
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+        }
+        
+        .date-input input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .date-input button {
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        
+        .date-input button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .date-input button:active {
+            transform: translateY(0);
+        }
+        
+        /* Animation for the countdown numbers */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+        
+        .time.changing {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        /* Decorative elements */
+        .decoration {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: -1;
+        }
+        
+        .decoration-1 {
+            width: 150px;
+            height: 150px;
+            top: -75px;
+            left: -75px;
+        }
+        
+        .decoration-2 {
+            width: 100px;
+            height: 100px;
+            bottom: -50px;
+            right: -50px;
+        }
+
+        /* Video container styles */
+        .video-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-container video {
+            max-width: 90%;
+            max-height: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="countdown-container">
+        <!-- Decorative elements -->
+        <div class="decoration decoration-1"></div>
+        <div class="decoration decoration-2"></div>
+        
+        <!-- Placeholder image in top corner -->
+        <img src="./PTNK_clear_logo.png" alt="Event logo" class="placeholder-image">
+        
+        <h1>Time Remaining</h1>
+        
+        <div class="countdown">
+            <div class="time-segment">
+                <div class="time" id="days">00</div>
+                <div class="label">Days</div>
+            </div>
+            <div class="time-segment">
+                <div class="time" id="hours">00</div>
+                <div class="label">Hours</div>
+            </div>
+            <div class="time-segment">
+                <div class="time" id="minutes">00</div>
+                <div class="label">Minutes</div>
+            </div>
+            <div class="time-segment">
+                <div class="time" id="seconds">00</div>
+                <div class="label">Seconds</div>
+            </div>
+        </div>
+        
+        <div class="target-date" id="target-display">
+            Counting down to: <span id="target-date-display">January 1, 2025 00:00:00</span>
+        </div>
+        
+        <div class="date-input">
+            <input type="datetime-local" id="target-date-input">
+            <button id="set-date">Set Countdown Date</button>
+        </div>
+    </div>
+
+    <!-- Video container -->
+    <div class="video-container" id="video-container">
+        <video id="countdown-video" controls>
+            <source src="./evan_congrats.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+    </div>
+
+    <script>
+        // Default target date (New Year's Day of next year)
+        let targetDate = new Date();
+        targetDate.setFullYear(targetDate.getFullYear() + 1);
+        targetDate.setMonth(0);
+        targetDate.setDate(1);
+        targetDate.setHours(0, 0, 0, 0);
+        
+        // Format the date for the datetime-local input
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        // Set the default value for the input
+        document.getElementById('target-date-input').value = formatDateForInput(targetDate);
+        
+        // Update the target date display
+        function updateTargetDisplay() {
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('target-date-display').textContent = targetDate.toLocaleDateString('en-US', options);
+        }
+        
+        updateTargetDisplay();
+        
+        // Set a new target date when the button is clicked
+        document.getElementById('set-date').addEventListener('click', function() {
+            const inputValue = document.getElementById('target-date-input').value;
+            if (inputValue) {
+                targetDate = new Date(inputValue);
+                updateTargetDisplay();
+            }
+        });
+        
+        // Previous values to detect changes
+        let prevDays, prevHours, prevMinutes, prevSeconds;
+        
+        // Update the countdown every second
+        function updateCountdown() {
+            const currentTime = new Date();
+            const difference = targetDate - currentTime;
+            
+            // If the target date has passed
+            if (difference <= 0) {
+                document.getElementById('days').textContent = '00';
+                document.getElementById('hours').textContent = '00';
+                document.getElementById('minutes').textContent = '00';
+                document.getElementById('seconds').textContent = '00';
+                
+                // Show the video
+                showVideo();
+                return;
+            }
+            
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+            
+            // Format the values
+            const daysStr = String(days).padStart(2, '0');
+            const hoursStr = String(hours).padStart(2, '0');
+            const minutesStr = String(minutes).padStart(2, '0');
+            const secondsStr = String(seconds).padStart(2, '0');
+            
+            // Update the DOM elements
+            const daysElement = document.getElementById('days');
+            const hoursElement = document.getElementById('hours');
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
+            
+            // Add animation class when values change
+            if (daysStr !== prevDays) {
+                daysElement.classList.add('changing');
+                setTimeout(() => daysElement.classList.remove('changing'), 500);
+            }
+            
+            if (hoursStr !== prevHours) {
+                hoursElement.classList.add('changing');
+                setTimeout(() => hoursElement.classList.remove('changing'), 500);
+            }
+            
+            if (minutesStr !== prevMinutes) {
+                minutesElement.classList.add('changing');
+                setTimeout(() => minutesElement.classList.remove('changing'), 500);
+            }
+            
+            if (secondsStr !== prevSeconds) {
+                secondsElement.classList.add('changing');
+                setTimeout(() => secondsElement.classList.remove('changing'), 500);
+            }
+            
+            // Update the text content
+            daysElement.textContent = daysStr;
+            hoursElement.textContent = hoursStr;
+            minutesElement.textContent = minutesStr;
+            secondsElement.textContent = secondsStr;
+            
+            // Store current values for next comparison
+            prevDays = daysStr;
+            prevHours = hoursStr;
+            prevMinutes = minutesStr;
+            prevSeconds = secondsStr;
+        }
+        
+        // Function to show the video
+        function showVideo() {
+            const videoContainer = document.getElementById('video-container');
+            const video = document.getElementById('countdown-video');
+            videoContainer.style.display = 'flex';
+            video.play();
+        }
+        
+        // Initial call to set the countdown values
+        updateCountdown();
+        
+        // Update the countdown every second
+        setInterval(updateCountdown, 1000);
+    </script>
+</body>
+</html>

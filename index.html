@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fancy Countdown Timer with Video</title>
+    <title>Đếm Ngày Về Việt Nam :D</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap">
     <style>
         * {
@@ -231,15 +231,80 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: black;
             z-index: 1000;
-            justify-content: center;
-            align-items: center;
         }
 
         .video-container video {
-            max-width: 90%;
-            max-height: 90%;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+        /* Glittering effect */
+        .glitter {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(circle, white 10%, transparent 10%),
+                radial-gradient(circle, white 10%, transparent 10%);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px;
+            animation: glitterAnimation 4s linear infinite;
+        }
+
+        @keyframes glitterAnimation {
+            0% {
+                background-position: 0 0, 25px 25px;
+                opacity: 0;
+            }
+            25% {
+                opacity: 0.5;
+            }
+            50% {
+                background-position: 25px 25px, 50px 50px;
+                opacity: 1;
+            }
+            75% {
+                opacity: 0.5;
+            }
+            100% {
+                background-position: 50px 50px, 75px 75px;
+                opacity: 0;
+            }
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .go-back-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(228, 12, 12, 0.2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .go-back-btn:hover {
+            background: rgba(5, 13, 136, 0.3);
         }
     </style>
 </head>
@@ -285,19 +350,33 @@
 
     <!-- Video container -->
     <div class="video-container" id="video-container">
-        <video id="countdown-video" controls>
-            <source src="./evan_congrats.mp4" type="video/mp4">
+        <video id="countdown-video" loop controls>
+            <source src="evan_congrats.mp4" type="video/mp4">
             Your browser does not support the video tag.
         </video>
+        <div class="glitter"></div>
+        <div class="video-overlay">Countdown Complete!</div>
+        <button class="go-back-btn" id="go-back-btn">Go Back</button>
     </div>
 
     <script>
-        // Default target date (New Year's Day of next year)
-        let targetDate = new Date();
-        targetDate.setFullYear(targetDate.getFullYear() + 1);
-        targetDate.setMonth(0);
-        targetDate.setDate(1);
-        targetDate.setHours(0, 0, 0, 0);
+        // Check localStorage for a saved target date
+        let savedTargetDate = localStorage.getItem('targetDate');
+        let targetDate;
+        if (savedTargetDate) {
+            targetDate = new Date(savedTargetDate);
+        } else {
+            // Set default target date to May 11.
+            const now = new Date();
+            let currentYear = now.getFullYear();
+            // Note: month is 0-indexed so 4 means May.
+            let may11 = new Date(currentYear, 4, 11, 0, 0, 0, 0);
+            if (now > may11) {
+                // If May 11 already passed this year, use next year's May 11.
+                may11 = new Date(currentYear + 1, 4, 11, 0, 0, 0, 0);
+            }
+            targetDate = may11;
+        }
         
         // Format the date for the datetime-local input
         function formatDateForInput(date) {
@@ -306,14 +385,13 @@
             const day = String(date.getDate()).padStart(2, '0');
             const hours = String(date.getHours()).padStart(2, '0');
             const minutes = String(date.getMinutes()).padStart(2, '0');
-            
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
         
-        // Set the default value for the input
+        // Set the default value for the input field
         document.getElementById('target-date-input').value = formatDateForInput(targetDate);
         
-        // Update the target date display
+        // Update the target date display in the DOM
         function updateTargetDisplay() {
             const options = { 
                 year: 'numeric', 
@@ -328,99 +406,136 @@
         
         updateTargetDisplay();
         
-        // Set a new target date when the button is clicked
+        // Set a new target date when the button is clicked and store it in localStorage
         document.getElementById('set-date').addEventListener('click', function() {
             const inputValue = document.getElementById('target-date-input').value;
             if (inputValue) {
                 targetDate = new Date(inputValue);
+                localStorage.setItem('targetDate', inputValue);
                 updateTargetDisplay();
             }
         });
         
-        // Previous values to detect changes
         let prevDays, prevHours, prevMinutes, prevSeconds;
         
-        // Update the countdown every second
         function updateCountdown() {
             const currentTime = new Date();
-            const difference = targetDate - currentTime;
+            let difference = targetDate - currentTime;
             
-            // If the target date has passed
+            // If the target date has passed or is reached, show video and increment target date by one day
             if (difference <= 0) {
+                // Show the video overlay
+                showVideo();
+
+                let now = new Date();
+                
+                // Increment the target date by one day (86400000 ms)
+                targetDate = new Date(now.getTime() + 86400000);
+                // Update localStorage and input field with the new target date
+                localStorage.setItem('targetDate', formatDateForInput(targetDate));
+                document.getElementById('target-date-input').value = formatDateForInput(targetDate);
+                updateTargetDisplay();
+                
+                // Reset the countdown display to zeros
                 document.getElementById('days').textContent = '00';
                 document.getElementById('hours').textContent = '00';
                 document.getElementById('minutes').textContent = '00';
                 document.getElementById('seconds').textContent = '00';
-                
-                // Show the video
-                showVideo();
                 return;
             }
             
+            // Calculate time segments
             const days = Math.floor(difference / (1000 * 60 * 60 * 24));
             const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((difference % (1000 * 60)) / 1000);
             
-            // Format the values
+            // Format the values as two-digit strings
             const daysStr = String(days).padStart(2, '0');
             const hoursStr = String(hours).padStart(2, '0');
             const minutesStr = String(minutes).padStart(2, '0');
             const secondsStr = String(seconds).padStart(2, '0');
             
-            // Update the DOM elements
+            // Get DOM elements
             const daysElement = document.getElementById('days');
             const hoursElement = document.getElementById('hours');
             const minutesElement = document.getElementById('minutes');
             const secondsElement = document.getElementById('seconds');
             
-            // Add animation class when values change
+            // Animate when values change
             if (daysStr !== prevDays) {
                 daysElement.classList.add('changing');
                 setTimeout(() => daysElement.classList.remove('changing'), 500);
             }
-            
             if (hoursStr !== prevHours) {
                 hoursElement.classList.add('changing');
                 setTimeout(() => hoursElement.classList.remove('changing'), 500);
             }
-            
             if (minutesStr !== prevMinutes) {
                 minutesElement.classList.add('changing');
                 setTimeout(() => minutesElement.classList.remove('changing'), 500);
             }
-            
             if (secondsStr !== prevSeconds) {
                 secondsElement.classList.add('changing');
                 setTimeout(() => secondsElement.classList.remove('changing'), 500);
             }
             
-            // Update the text content
+            // Update the countdown display
             daysElement.textContent = daysStr;
             hoursElement.textContent = hoursStr;
             minutesElement.textContent = minutesStr;
             secondsElement.textContent = secondsStr;
             
-            // Store current values for next comparison
+            // Store current values for the next update
             prevDays = daysStr;
             prevHours = hoursStr;
             prevMinutes = minutesStr;
             prevSeconds = secondsStr;
         }
         
-        // Function to show the video
+        // Function to show the video overlay
         function showVideo() {
             const videoContainer = document.getElementById('video-container');
             const video = document.getElementById('countdown-video');
-            videoContainer.style.display = 'flex';
+            videoContainer.style.display = 'block';
             video.play();
+            
+            // Request fullscreen
+            if (videoContainer.requestFullscreen) {
+                videoContainer.requestFullscreen();
+            } else if (videoContainer.mozRequestFullScreen) { // Firefox
+                videoContainer.mozRequestFullScreen();
+            } else if (videoContainer.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                videoContainer.webkitRequestFullscreen();
+            } else if (videoContainer.msRequestFullscreen) { // IE/Edge
+                videoContainer.msRequestFullscreen();
+            }
         }
         
-        // Initial call to set the countdown values
-        updateCountdown();
+        // Function to hide the video overlay and exit fullscreen
+        function hideVideo() {
+            const videoContainer = document.getElementById('video-container');
+            const video = document.getElementById('countdown-video');
+            videoContainer.style.display = 'none';
+            video.pause();
+            video.currentTime = 0;
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+                document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+                document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+                document.msExitFullscreen();
+            }
+        }
         
-        // Update the countdown every second
+        // Event listener for the "Go Back" button on the video overlay
+        document.getElementById('go-back-btn').addEventListener('click', hideVideo);
+        
+        // Initial call to set the countdown values and update every second
+        updateCountdown();
         setInterval(updateCountdown, 1000);
-    </script>
+    </script>    
 </body>
 </html>
